@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maritiem Scrumboard</title>
+  <style>
+    :root {
+      --accent-color: #00bcd4;
+      --accent-dark: #0097a7;
+      --ocean-light: #f0f8ff;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to top, #1e3c72, #2a5298);
+      
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h2 {
+      text-align: center;
+      color: #fff;
+      margin-top: 10px;
+      font-size: 28px;
+    }
+
+    .board-container {
+      display: flex;
+      height: 85vh;
+      padding: 10px 20px;
+      overflow-x: auto;
+    }
+
+    .board {
+      display: flex;
+      gap: 15px;
+      flex-grow: 1;
+      position: relative;
+    }
+
+    .rope-divider {
+      width: 5px;
+      background-image: repeating-linear-gradient(
+        45deg,
+        #c2b280,
+        #c2b280 5px,
+        #a97c50 5px,
+        #a97c50 10px
+      );
+      height: 100%;
+      border-radius: 5px;
+    }
+
+    .column {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      width: 320px;
+      min-width: 320px;
+      height: 100%;
+      padding: 10px;
+      position: relative;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .column h3 {
+      color: white;
+      text-align: center;
+      width: 100%;
+      font-size: 18px;
+    }
+
+    .ship {
+      width: 80px;
+      margin: 10px;
+      cursor: grab;
+      position: relative;
+      animation: float 2s ease-in-out infinite;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .ship svg {
+      width: 100%;
+      height: auto;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .ship-title {
+      color: white;
+      font-weight: bold;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .status-icons {
+      margin-top: 3px;
+    }
+
+    .status-icons span {
+      cursor: pointer;
+      font-size: 16px;
+      margin: 0 2px;
+      transition: transform 0.2s;
+    }
+
+    .status-icons span.active {
+      transform: scale(1.3);
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .controls input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: var(--ocean-light);
+      font-size: 16px;
+    }
+
+    .controls button {
+      background: var(--accent-color);
+      color: white;
+      font-weight: bold;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+
+    .controls button:hover {
+      background: var(--accent-dark);
+    }
+
+    #trash {
+      display: inline-block;
+      margin-left: 20px;
+      padding: 10px 20px;
+      border: 2px dashed red;
+      color: white;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.3s ease;
+    }
+
+    #trash:hover {
+      background: rgba(255, 0, 0, 0.3);
+    }
+    .ship {
+      width: 80px;
+      margin: 10px;
+      cursor: grab;
+      position: relative;
+      animation: float 2s ease-in-out infinite, fadeIn 0.5s ease;
+      text-align: center;
+      flex-shrink: 0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .ship:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .badge-icon {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 4px;
+      padding: 2px 4px;
+      font-size: 12px;
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes waveBackground {
+      0% { background-position-x: 0; }
+      100% { background-position-x: -640px; }
+    }
+      @import url('https://fonts.googleapis.com/css2?family=Treasure+Map+Deadhand&display=swap');
+
+    .column {
+      background: rgba(255, 255, 255, 0.1);
+      border: 4px double #c2b280;
+      background-image: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27 viewBox=%270 0 100 100%27%3E%3Ctext x=%270%27 y=%2750%27 font-size=%2712%27 fill=%27%23ffffff22%27%3E⚓%3C/text%3E%3C/svg%3E');
+      background-repeat: repeat;
+      background-size: 40px;
+    }
+
+    .column {
+      position: relative;
+      padding-top: 30px;
+      padding-bottom: 30px;
+    }
+
+</style>
+</head>
+<body>
+  <h2 style="font-family: 'Treasure Map Deadhand', cursive; font-size: 36px; text-shadow: 2px 2px #000;">🏴‍☠️ AI Albeda Scrumbord 🧭</h2>
+  <div class="controls">
+    <input type="text" id="newTaskTitle" placeholder="Nieuwe taak titel" />
+    <button onclick="addNewShip()">Voeg taak toe</button>
+    <div id="trash" ondrop="handleTrashDrop(event)" ondragover="allowDrop(event)">
+      🗑️ Verwijder taak
+    </div>
+  </div>
+  <div class="board-container">
+    <div class="board">
+      <div class="column" id="todo" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h3>To-Do</h3>
+      </div>
+      <div class="column" id="inprogress" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h3>In Progress</h3>
+      </div>
+      <div class="column" id="done" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h3>Done</h3>
+      </div>
+      <div class="rope-divider"></div>
+      <div class="column" id="parking" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h3>Parking</h3>
+      </div>
+      <div class="column" id="valet" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <h3>Valet Parking</h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let shipCounter = 1;
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const ship = document.getElementById(data);
+      ev.target.closest('.column').appendChild(ship);
+    }
+
+    function createShip(id, title) {
+      const ship = document.createElement("div");
+      ship.className = "ship";
+      ship.id = id;
+      ship.draggable = true;
+      ship.ondragstart = drag;
+
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+          <path d="M12 48l2 4h36l2-4-6-12H18l-6 12z" fill="#4682B4" stroke="#000" stroke-width="2"/>
+          <path d="M22 34 L32 4 L42 34 Z" fill="#fff" stroke="#000" stroke-width="1"/>
+          <line x1="32" y1="4" x2="32" y2="34" stroke="#000" stroke-width="1" />
+        </svg>`;
+
+      const svgContainer = document.createElement("div");
+      svgContainer.innerHTML = svg;
+      ship.appendChild(svgContainer);
+
+      const titleElem = document.createElement("div");
+      titleElem.className = "ship-title";
+      titleElem.textContent = title;
+
+      const icons = ["🌪️", "🚤", "🆘", "🛢️"];
+      const statusIcons = document.createElement("div");
+      statusIcons.className = "status-icons";
+
+      icons.forEach(icon => {
+        const span = document.createElement("span");
+        span.textContent = icon;
+        span.onclick = () => {
+          span.classList.toggle("active");
+
+          const iconTag = icon;
+          let existing = ship.querySelector(`.badge-icon[data-icon='${iconTag}']`);
+
+          if (span.classList.contains("active")) {
+            if (!existing) {
+              const badge = document.createElement("div");
+              badge.className = "badge-icon";
+              badge.dataset.icon = iconTag;
+              badge.textContent = iconTag;
+              badge.style.position = "absolute";
+              badge.style.right = "0";
+              badge.style.fontSize = "14px";
+              const badgeCount = ship.querySelectorAll('.badge-icon').length;
+              badge.style.top = `${badgeCount * 18}px`;
+              ship.appendChild(badge);
+            }
+          } else {
+            if (existing) existing.remove();
+          }
+        };
+        statusIcons.appendChild(span);
+      });
+
+      ship.appendChild(titleElem);
+      ship.appendChild(statusIcons);
+      return ship;
+    }
+
+    function addNewShip() {
+      const title = document.getElementById("newTaskTitle").value.trim();
+      if (!title) return;
+      const newShip = createShip("ship" + shipCounter++, title);
+      document.getElementById("todo").appendChild(newShip);
+      document.getElementById("newTaskTitle").value = '';
+    }
+
+    document.getElementById("todo").appendChild(createShip("ship1", "Nieuwe functie"));
+    document.getElementById("inprogress").appendChild(createShip("ship2", "Bug fixen"));
+    document.getElementById("done").appendChild(createShip("ship3", "Design review"));
+
+    function handleTrashDrop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const ship = document.getElementById(data);
+      if (ship) ship.remove();
+    }
+  
+    // Opslaan in localStorage
+    function saveBoardState() {
+      const ships = document.querySelectorAll('.ship');
+      const data = Array.from(ships).map(ship => {
+        const column = ship.closest('.column')?.id;
+        const title = ship.querySelector('.ship-title')?.textContent;
+        const id = ship.id;
+        const badges = Array.from(ship.querySelectorAll('.badge-icon')).map(b => b.dataset.icon);
+        return { id, title, column, badges };
+      });
+      localStorage.setItem('scrumboardData', JSON.stringify(data));
+    }
+
+    // Herstellen bij laden
+    function loadBoardState() {
+      const raw = localStorage.getItem('scrumboardData');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      data.forEach(({ id, title, column, badges }) => {
+        const ship = createShip(id, title);
+        if (badges && Array.isArray(badges)) {
+          badges.forEach(icon => {
+            const iconSpan = Array.from(ship.querySelectorAll('.status-icons span')).find(s => s.textContent === icon);
+            if (iconSpan) iconSpan.click();
+          });
+        }
+        document.getElementById(column)?.appendChild(ship);
+        shipCounter = Math.max(shipCounter, parseInt(id.replace('ship', '')) + 1);
+      });
+    }
+
+    // Override create & drop functies
+    const originalAddNewShip = addNewShip;
+    addNewShip = function () {
+      originalAddNewShip();
+      saveBoardState();
+    };
+
+    const originalDrop = drop;
+    drop = function (ev) {
+      originalDrop(ev);
+      saveBoardState();
+    };
+
+    document.addEventListener('DOMContentLoaded', loadBoardState);
+  </script>
+</body>
+</html>
