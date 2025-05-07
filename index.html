@@ -215,9 +215,28 @@
 </style>
 </head>
 <body>
+  <details style="max-width: 900px; margin: 0 auto 10px auto; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; color: white;">
+    <summary style="cursor: pointer; font-weight: bold; font-size: 18px;">ℹ️ Uitleg van het Scrumbord</summary>
+    <p><strong>Welkom bij het AI Albeda Scrumbord!</strong></p>
+    <ul>
+      <li><strong>Kolommen:</strong> Taken worden verdeeld over To-Do, In Progress, Done, Parking en Valet Parking.</li>
+      <li><strong>Bootjes:</strong> Elke taak wordt weergegeven als een boot die je kunt verslepen tussen kolommen.</li>
+      <li><strong>Statusicoontjes:</strong> Klik op een icoon om deze aan een boot toe te wijzen:</li>
+      <ul>
+        <li>🌪️ <strong>Storm:</strong> Er zijn problemen met deze taak.</li>
+        <li>🚤 <strong>Speedboat:</strong> Een kleine of snelle taak.</li>
+        <li>🆘 <strong>Hulp nodig:</strong> Iemand moet helpen met deze taak.</li>
+        <li>🛢️ <strong>Olietanker:</strong> Grote, logge taak.</li>
+      </ul>
+      <li><strong>Taak toevoegen:</strong> Gebruik het invoerveld bovenaan om een nieuwe taak toe te voegen.</li>
+      <li><strong>Taak verwijderen:</strong> Sleep de boot naar het prullenbakje 🗑️.</li>
+    </ul>
+    <p><em>Alle wijzigingen worden automatisch lokaal opgeslagen in je browser (localStorage).</em></p>
+  </details>
   <h2 style="font-family: 'Treasure Map Deadhand', cursive; font-size: 36px; text-shadow: 2px 2px #000;">🏴‍☠️ AI Albeda Scrumbord 🧭</h2>
   <div class="controls">
     <input type="text" id="newTaskTitle" placeholder="Nieuwe taak titel" />
+    <input type="text" id="newTaskOwner" placeholder="Verantwoordelijke" />
     <button onclick="addNewShip()">Voeg taak toe</button>
     <div id="trash" ondrop="handleTrashDrop(event)" ondragover="allowDrop(event)">
       🗑️ Verwijder taak
@@ -284,6 +303,18 @@
       titleElem.className = "ship-title";
       titleElem.textContent = title;
 
+      const ownerElem = document.createElement("div");
+      ownerElem.className = "ship-owner";
+      ownerElem.textContent = "👤 Klik om verantwoordelijke toe te wijzen";
+      ownerElem.style.color = "#ccc";
+      ownerElem.style.fontSize = "11px";
+      ownerElem.style.cursor = "pointer";
+      ownerElem.addEventListener("dblclick", () => {
+        const naam = prompt("Wie is verantwoordelijk voor deze taak?", ownerElem.textContent.replace('👤 ', ''));
+        if (naam) ownerElem.textContent = `👤 ${naam}`;
+        saveBoardState();
+      });
+
       const icons = ["🌪️", "🚤", "🆘", "🛢️"];
       const statusIcons = document.createElement("div");
       statusIcons.className = "status-icons";
@@ -318,16 +349,21 @@
       });
 
       ship.appendChild(titleElem);
+      ship.appendChild(ownerElem);
       ship.appendChild(statusIcons);
       return ship;
     }
 
     function addNewShip() {
       const title = document.getElementById("newTaskTitle").value.trim();
+      const ownerName = document.getElementById("newTaskOwner").value.trim();
       if (!title) return;
       const newShip = createShip("ship" + shipCounter++, title);
+      const ownerElem = newShip.querySelector('.ship-owner');
+      if (ownerElem && ownerName) ownerElem.textContent = `👤 ${ownerName}`;
       document.getElementById("todo").appendChild(newShip);
       document.getElementById("newTaskTitle").value = '';
+      document.getElementById("newTaskOwner").value = '';
     }
 
     document.getElementById("todo").appendChild(createShip("ship1", "Nieuwe functie"));
@@ -347,9 +383,10 @@
       const data = Array.from(ships).map(ship => {
         const column = ship.closest('.column')?.id;
         const title = ship.querySelector('.ship-title')?.textContent;
+        const owner = ship.querySelector('.ship-owner')?.textContent.replace('👤 ', '') || "";
         const id = ship.id;
         const badges = Array.from(ship.querySelectorAll('.badge-icon')).map(b => b.dataset.icon);
-        return { id, title, column, badges };
+        return { id, title, owner, column, badges };
       });
       localStorage.setItem('scrumboardData', JSON.stringify(data));
     }
@@ -359,8 +396,10 @@
       const raw = localStorage.getItem('scrumboardData');
       if (!raw) return;
       const data = JSON.parse(raw);
-      data.forEach(({ id, title, column, badges }) => {
+      data.forEach(({ id, title, owner, column, badges }) => {
         const ship = createShip(id, title);
+        const ownerElem = ship.querySelector('.ship-owner');
+        if (ownerElem && owner) ownerElem.textContent = `👤 ${owner}`;
         if (badges && Array.isArray(badges)) {
           badges.forEach(icon => {
             const iconSpan = Array.from(ship.querySelectorAll('.status-icons span')).find(s => s.textContent === icon);
